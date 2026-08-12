@@ -1,7 +1,9 @@
 import mongoose,{Schema} from "mongoose";
-import bcrypt from bcrypt;
-import jwt from "jsonwebtoken";
-import crypto from "crypto";
+import bcrypt from "bcrypt";  //for pasword hashing  
+import jwt from "jsonwebtoken";  //for generate access token,refresh token 
+import crypto from "crypto";  //for generating without data token i.e. random string
+
+
 const userSchema=new Schema({
       avatar:{
         type:{
@@ -10,10 +12,10 @@ const userSchema=new Schema({
         },
         default:{
             url:`https://placehold.co/200x200`,
-            localpath="",
+            localpath:"",
         }
       },
-      usename:{
+      username:{
         type:String,
         required:true,
         unique:true,
@@ -34,7 +36,7 @@ const userSchema=new Schema({
       },
       password:{
         type:String,
-        required:[true,"password is required"],
+        required:[true,"Password is required"],
       },
       isEmailVerified:{
         type:Boolean,
@@ -58,17 +60,21 @@ const userSchema=new Schema({
     },{
     timestamps:true,
       }, );
+
+//cant use arrow function qki usme this ni hota 
 userSchema.pre("save",async function(next){
-  if(!this.isModified("password")) return next()    //password field badli hai kya ?  true(false nche wala chla do ) : false(true yhi se return kr jao yrr )
+  if(!this.isModified("password")) return ;    //password field badli hai kya ?  true(false nche wala chla do ) : false(true yhi se return kr jao yrr )
   this.password=await bcrypt.hash(this.password,10);
-  next() 
+  //next() 
 })
+
+
 // argument mei jo hai wo user ne jo type kra shi bhi ho skta hai nd galat bhi ho skta hai 
 userSchema.methods.isPasswordCorrect=async function (password){  
   return await bcrypt.compare(password,this.password);  
 }; 
 
-
+//generating the access token
 userSchema.methods.generateAccessToken=function(){
   return jwt.sign({
     _id:this._id,
@@ -78,6 +84,7 @@ userSchema.methods.generateAccessToken=function(){
 )
 };
 
+//generating the refresh token
 userSchema.methods.generateRefreshToken=function(){
   return jwt.sign({
     _id:this._id,
@@ -89,21 +96,19 @@ userSchema.methods.generateRefreshToken=function(){
 )
 };
 
-userSchema.methods.generateTemporaryToken=function(){
-  const unHashedtoken=crypto.randomBytes(20).to_string("hex")
 
+//genreating the unhashed token usng bcrypt
+userSchema.methods.generateTemporaryToken=function(){
+  const unHashedtoken=crypto.randomBytes(20).toString("hex")
   const hashedToken=crypto
-        .createHash("sha256")
-        .update(unHashedtoken)
-        .digest("hex")
-  const TokenExpiry=Date.now()+(20*60*1000)
+        .createHash("sha256")  //which algo i want to use 
+        .update(unHashedtoken)    //unhashed to hashed
+        .digest("hex")           
+  const TokenExpiry=Date.now()+(20*60*1000)   //expiry date 
   return {unHashedtoken,hashedToken,TokenExpiry}
 };
 
-
-
-
-export const User=mongoose.model("User",userSchema) 
+export const User=mongoose.model("User",userSchema)    
 
 
 //model bn gya user ke liye yrr 2
