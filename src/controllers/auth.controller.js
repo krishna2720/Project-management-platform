@@ -173,7 +173,7 @@ const logoutUser=asyncHandler(async (req,res) => {
         })
     const options={         //We'll need options to interact with cookies
         httpOnly:true,
-        secure:true
+        secure:false
     }
 
     return res
@@ -191,6 +191,8 @@ const logoutUser=asyncHandler(async (req,res) => {
 
 
 //Function to get current user (Request already has user appended with it, return it)
+//abhi kon kon login hai 
+// GET /current-user
 const getCurrentUser=asyncHandler(async (req,res)=>{
     return res
     .status(200)
@@ -198,13 +200,14 @@ const getCurrentUser=asyncHandler(async (req,res)=>{
         new ApiResponse(
             200,
             req.user,       //coz req.user is already an object
-            "Current user fetched successfully"
+            "Current user fetched successfully who has login "
         )
     )
 })
 
 
 //Function to verify email
+// GET/verify-email/:verificationToken
 const verifyEmail=asyncHandler(async (req,res)=>{
 
     //1. Take the verification token from URL (in req.params that contains url parameters)
@@ -254,6 +257,7 @@ const verifyEmail=asyncHandler(async (req,res)=>{
 //Function to resend Email verification
 //Email verification can be present only if email is not verified and after emailVerficationExpiry
 //Apply these 2 checks then repeat same 4&5 step of registerUser: Attach UT,HT and tokenExpiry then send Email
+//POST /resend-email-verification
 const resendEmailVerification=asyncHandler(async (req,res)=>{
     const user=req.user
     //Verification email should not be resent if user is already verified
@@ -293,6 +297,8 @@ const resendEmailVerification=asyncHandler(async (req,res)=>{
 
 //Function to refresh the access token
 //Since refreshToken is used to refresh the accessToken: fetch incoming refreshToken, decode and verify it with refreshToken stored in DB, then generate new accessToken and refreshToken
+//Access Token expire hone par, existing valid Refresh Token ki help se NEW Access Token generate hota hai.
+// POST /refresh-token 
 const refreshAccessToken=asyncHandler(async (req,res)=>{
     //1. Fetch incoming refreshToken through cookies or body
     const incomingRefreshToken=req.cookies.refreshToken||req.body.refreshToken
@@ -305,22 +311,21 @@ const refreshAccessToken=asyncHandler(async (req,res)=>{
     try {
         //Since its token with data,thats why needed to decode then match
         const decodedToken=jwt.verify(incomingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
-
         const user=await User.findById(decodedToken._id)
         if(!user){
-            throw new ApiError(407,"Invalid Refresh Token")
+            throw new ApiError(401,"Invalid Refresh Token")
         }
 
         if(incomingRefreshToken!==user.refreshToken){
-            throw new ApiError(403,"Refresh token has expired")
-        }
+            throw new ApiError(401,"Refresh token is expired")
+        }   
 
     //3. Generate new accessToken and refreshToken. Send both to user as cookie and save refreshToken in DB
     const {accessToken,refreshToken}= await generateAccessAndRefreshToken(user._id)
     //Saving new refresh Token in database
     user.refreshToken=refreshToken
     await user.save({validateBeforeSave:false})
-
+  
     //Sending both to user as cookie
     const options={
         httpOnly:true,
@@ -349,6 +354,7 @@ const refreshAccessToken=asyncHandler(async (req,res)=>{
 //Function to handle forgotPassword Request
 //In forgotPassword mechanism: client sends his email address, server checks if email exists in DB, then sends email to that email address that leads to reset password mechanism
 //Take email address of client, verify if it exists in DB and repeat 4th&5th step of registerUser: Attach UT,HT and tokenExpiry then send Email
+//POST /forgot-password    => isme toh mail hejna pdega and uspe link ayega but change password mei aisa ni hoga yr 
 const forgotPasswordRequest=asyncHandler(async (req,res)=>{
     //1. Take email address of client
     const {email}=req.body
@@ -369,26 +375,43 @@ const forgotPasswordRequest=asyncHandler(async (req,res)=>{
     await sendEmail(
         {
             email:user?.email,
-            subject:"Click on this link to reset your password",
+            subject:"Click on this link so that you can reset your password",
             mailgenContent:forgotPasswordMailgenContent(user.username, 
             `${process.env.FORGOT_PASSWORD_REDIRECT_URL}/${unHashedToken}`)     //We can use dynamic link or static link both
         }
-    )
+    );
     
     return res
     .status(200)
     .json(
-        new ApiResponse(200,{},"Email to reset password sent successfully")
+        new ApiResponse(200,{},"Password Reset email has been sent on your email id successfully")
     )
-})
-
+})/*
+//USER PASSWORD BHOOL GAYA
+        ↓
+//POST /forgot-password
+        ↓
+//forgotPasswordRequest()
+        ↓
+//Email par reset link bheja
+        ↓
+//User link click karta hai
+        ↓
+//POST /reset-password/:resetToken
+        ↓
+//resetForgotPassword()
+        ↓
+//Token verify
+        ↓
+//New password save*/
 
 //Function to reset Forgot Password
 //Take resetToken and newPassword from request, verify resetToken and update password of user
+// POST/reset-password/:resetToken
 const resetForgotPassword=asyncHandler(async (req,res) => {
     //1. Take resetToken and newPassword from request
     const {resetToken}=req.params       //Reset token must be present as parameter in url(or route)
-    const {newPassword}=req.body
+    const {newPassword}=req.body  
     const {confirmPassword}=req.body
 
     //2. Verify resetToken (resetToken is unHashed token, so hash it then match it with one stored in DB)
@@ -401,7 +424,7 @@ const resetForgotPassword=asyncHandler(async (req,res) => {
     //Since resetToken is tokenWithoutData, no need to decode, Directly match
     const user=await User.findOne({forgotPasswordToken:hashedToken,
         forgotPasswordExpiry:{$gt: Date.now()}
-    })
+    })   
     if(!user){
         throw new ApiError(404,"Invalid Reset Token")
     }
@@ -423,11 +446,12 @@ const resetForgotPassword=asyncHandler(async (req,res) => {
         new ApiResponse(200,{},"Password has been reset successfully")
     )
 })
-
+ 
 
 //Function to change Password (For user who is already loggedIn)
 //req.user works only when user is loggedIn otherwise you need to run a query in DB to find matching user
 //Take old and new password, verify old password and change to new password
+// POST /change-password
 const changeCurrentPassword=asyncHandler(async (req,res) => {
     //1. Take old and new password (from req.body)
     const {oldPassword,newPassword}=req.body
@@ -447,7 +471,7 @@ const changeCurrentPassword=asyncHandler(async (req,res) => {
     return res
     .status(200)
     .json(
-        new ApiResponse(200,{},"Password changed successfully")
+        new ApiResponse(200,{},"Password changed successfully by the user ")
     )
 })
 
