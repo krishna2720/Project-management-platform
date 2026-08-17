@@ -43,7 +43,7 @@ const userLoginValidator=() => {
         .withMessage("Password is required")
     ]
 }
-
+//agar empty hui toh niche wlaa message chalega yrr 
 const userChangeCurrentPasswordValidator=() => {
     return [
         body("oldPassword")
@@ -61,7 +61,7 @@ const userForgotPasswordValidator=()=>{
         .notEmpty()
         .withMessage("Email address is required")
         .isEmail()
-        .withMessage("Invalid Email")
+        .withMessage("Email is Invalid ")
     ]
 }
 
