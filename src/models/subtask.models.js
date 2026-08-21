@@ -1,24 +1,24 @@
 import mongoose,{Schema} from "mongoose";
 
 const subTaskSchema=new Schema({
-    title:{
+    title:{      //subtask ka title 
         type:String,
         required:true,
         trim:true
-    },
-    task:{
+    }, 
+    task:{       //ye subtask kis task ka part hai 
         type:Schema.Types.ObjectId,
         ref:"Task",
         required:true
     },
-    isCompleted:{
+    isCompleted:{           //ye subtask complete hua ya ni 
         type:Boolean,
         default:false,
     },
-    createdBy:{
+    createdBy:{         //ye subtask kis user ne bnaya hai 
         type:Schema.Types.ObjectId,
         ref:"User",
-        require:true,
+        required:true,
     }
 },{timestamps:true});
  

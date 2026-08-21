@@ -1,16 +1,16 @@
 import mongoose,{Schema} from "mongoose";
 
 const projectSchema=new Schema({
-     name:{
-        type:String,
+     name:{       //name of the project 
+        type:String,          
         required:true,
         unique:true,
         trim:true
      },
-     description:{
+     description:{         //project ke baarei mei basic details  
         type:String,
      },
-     createdBy:{
+     createdBy:{      //kiss user ne create kra project user->project
         type:Schema.Types.ObjectId,
         ref:"User",
         required:true
