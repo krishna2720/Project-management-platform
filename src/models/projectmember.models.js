@@ -12,7 +12,7 @@ const projectMemberSchema=new Schema ({
         ref:"Project",
         required:true
     },  
-    role:{               //is proejct mei user ka kya role hai 
+    role:{               //is proejct mei user ka kya role hai by default member bna doo
         type:String,
         enum:AvailableUserRole,
         default:userRolesEnum.MEMBER

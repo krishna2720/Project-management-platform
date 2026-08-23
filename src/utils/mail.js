@@ -12,7 +12,6 @@ const sendEmail=async (options) => {  //Options are all attributes of email (to,
             link:"https://projectmanagementplatform.com"
         }
     })
-
     //Textual content of mail
     const emailTextual=mailGenerator.generatePlaintext(options.mailgenContent)
     //Generate content that supports HTML
@@ -21,9 +20,9 @@ const sendEmail=async (options) => {  //Options are all attributes of email (to,
     
     // Actual sending of email: Create transport of nodemailer then send
     const transporter=nodemailer.createTransport({
-        host:process.env.MAILTRAP_SMTP_HOST,
-        port:process.env.MAILTRAP_SMTP_PORT,
-        auth:{
+        host:process.env.MAILTRAP_SMTP_HOST,   //smtp server address 
+        port:process.env.MAILTRAP_SMTP_PORT,   // mail server port 
+        auth:{          //mail server mei logi krne ke credential 
             user:process.env.MAILTRAP_SMTP_USER,
             pass:process.env.MAILTRAP_SMTP_PASS
         }

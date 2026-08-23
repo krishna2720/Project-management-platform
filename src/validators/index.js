@@ -1,16 +1,17 @@
-//Create validators to validate input data
-import {body} from "express-validator"
+//Create validators to validate input data pass through the frontend 
+import {body} from "express-validator"  
 
 //Validation method: Returns an array after validating input fields by validation methods and message
 const userRegisterValidator=() => {
     return [
-        body("email")
-        .trim()
+        body("email")     //req.body->email(frontend se jo ayai hai)
+        .trim()       //eliminate extra space 
         .notEmpty()         //These are validations that I run on input fields along with message
         .withMessage("Email is required")   //Attach withMessage after validation method to show a message if a validation fails
+      //  .bail()  agar aage ki eror ni chalani toh yhiu stop hojayega gar khali bheja toh  
         .isEmail()
         .withMessage("Please enter the valid email !!"),
-        body("username")
+        body("username")    //req.body->username 
         .trim()
         .notEmpty()
         .withMessage("Username is required")
@@ -18,54 +19,54 @@ const userRegisterValidator=() => {
         .withMessage("Username must be in lowercase")
         .isLength({min:3})          //Min 3 chars in username
         .withMessage("Username must be aleast 3 characters long"),
-        body("password")
+        body("password")      //req.body->password
         .trim()
         .notEmpty()
         .withMessage("Password is required")
         .isLength({min:8})
         .withMessage("Password must be atleast 8 characters long"),
-        body("fullname")
+        body("fullname")      //req.body->fullname 
         .optional()
         .trim()
 
     ]
 }
 
-const userLoginValidator=() => {
+const userLoginValidator=() => {          //email and password se login krega toh unpe rules bna doo jisse galat na dal paye 
     return [
         body("email")
         .notEmpty()
         .withMessage("Email is required")
         .isEmail()
-        .withMessage("Invalid E-mail or Password"),
+        .withMessage("Email is not valid"),
         body("password")
         .notEmpty()
         .withMessage("Password is required")
     ]
 }
 //agar empty hui toh niche wlaa message chalega yrr 
-const userChangeCurrentPasswordValidator=() => {
+const userChangeCurrentPasswordValidator=() => {       // when old password and newpassowrd is enetered by the user 
     return [
         body("oldPassword")
         .notEmpty()
-        .withMessage("Old Password is required "),
+        .withMessage("Old Password is required field"),
         body("newPassword")
         .notEmpty()
-        .withMessage("New Password is required")
+        .withMessage("New Password is required field")
     ]
 }
 
-const userForgotPasswordValidator=()=>{
+const userForgotPasswordValidator=()=>{     //when user forget password then email is entered by the user 
     return [
         body("email")
         .notEmpty()
-        .withMessage("Email address is required")
+        .withMessage("Email address is required field")
         .isEmail()
         .withMessage("Email is Invalid ")
     ]
 }
 
-const userResetForgotPasswordValidator=()=>{
+const userResetForgotPasswordValidator=()=>{      //now user enter the new password 
     return [
         body("newPassword")
         .notEmpty()
@@ -80,5 +81,4 @@ export {
     userForgotPasswordValidator,
     userResetForgotPasswordValidator,
 }
-//Here we have written validator for registerUser. 
-//Similarly we can write validator for login Route, passwordReset Route and other routes
+//requesthit -> validator-> validator middleware(if error and throw eror) ->controller

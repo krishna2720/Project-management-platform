@@ -1,5 +1,3 @@
-//To create controller for Registering the user in Database (using 6-step process)
-
 import {User} from "../models/users.models.js"  //query anything from database 
 
 import {ApiResponse} from "../utils/api-response.js"   
@@ -10,16 +8,14 @@ import { asyncHandler } from "../utils/async-handler.js"
 import {emailVerificationMailgenContent,forgotPasswordMailgenContent,sendEmail}   from "../utils/mail.js"   //To verify user by email
 
 import jwt from "jsonwebtoken"      //To decode and verify jwt
-
 import crypto from "crypto"         //To create hashedToken from unHashedToken
 
 
-
-//Function for generating access and Refresh Token altogether for given userId
+//Function for generating access token and Refresh Token altogether for given userId
 const generateAccessAndRefreshToken=async(userId) => {  //Once user gets entered in DB, he gets userId
     try {
         const newUser=await User.findById(userId)           //With all DB operations, use await coz DB is always in another continent
-        const accessToken=newUser.generateAccessToken();    //Using methods of schema to generate accessToken and refreshToken
+        const accessToken=newUser.generateAccessToken();    //Using methods of schema to generate accessToken and refreshToken-
         const refreshToken=newUser.generateRefreshToken();
 
         newUser.refreshToken=refreshToken;          //Saving only refresh token in DB
@@ -42,9 +38,9 @@ const registerUser=asyncHandler(async (req,res)=>{
     //2. Validate the data
     //We have created validator, middleware and implemented them in route to validate data
 
-    //3. Check in DB for duplicates (TO run any query in DB, use DB model. To find any data, use find() or findOne())
+    //3. Check in DB for duplicates check(TO run any query in DB, use DB model. To find any data, use find() or findOne())
     const existedUser=await User.findOne({
-        $or: [{username},{email}]           //If either username is found or email is found 
+        $or: [{username},{email}]           //If either username is found or email is found then throw eror 
     })
 
     if(existedUser){
@@ -65,10 +61,10 @@ const registerUser=asyncHandler(async (req,res)=>{
     const {unHashedToken,hashedToken,tokenExpiry}=newUser.generateTemporaryToken();  // ye newuser pe lgege 
 
     //Saving emailVerificationToken (or hashed token) and emailVerificationExpiry in DB st it can be used later to verify email of user
-    newUser.emailVerificationToken=hashedToken   //Will be used to verify email of user
+    newUser.emailVerificationToken=hashedToken   //Will be used to verify email of user via crypto 
     newUser.emailVerificationExpiry=tokenExpiry
 
-    await newUser.save({validateBeforeSave:false});
+    await newUser.save({validateBeforeSave:false});  //save in the database 
 
 
     //5. Verify user by email (By calling function of sendEmail and passing options containing email, subject and mailgencontent)
@@ -82,6 +78,7 @@ const registerUser=asyncHandler(async (req,res)=>{
         //We will create controller and route for verify-email and process this unhashed token
         }
     )
+    //https://myapp.com/api/v1/users/verify-email/abc123 
 
     //6. Send response back to user (Success msg)
     //Data of response
@@ -97,16 +94,13 @@ const registerUser=asyncHandler(async (req,res)=>{
     return res      
     .status(200)
     .json(                  //Frontend expects response in structured format, thats why we use json object
-        new ApiResponse(
-            200,
-            {user: createdUser},        //Send data as json object
-            "User has been Registered Successfully in Project Management Platform app "
-        )
+        new ApiResponse(200,{user: createdUser},"User has been Registered Successfully in Project Management Platform app ")
     )
 })
 
 
 //Function to login user (7-Step process)
+//email password se login krwana hai mere dostttt 
 const loginUser=asyncHandler(async (req,res) => {
     //1. Take some data from frontend: From req.body
     const {email,password}=req.body
@@ -117,20 +111,21 @@ const loginUser=asyncHandler(async (req,res) => {
 
     //2. Validate data
     //We have created Validator file, middleware and implemented them in route to validate data
+    //email valid or not ? password lenght >=8 iss type ki chezei sb validator mei yrr 
 
-    //3. Check if user exists in DB: by User.findOne()
+    //3 check user is present in database or not 
     const user=await User.findOne({email})
 
     if(!user){
-        throw new ApiError(402,"User does not exist")
+        throw new ApiError(402,"User does not exist so please first register")
     }
 
-    //4. Verify Password: By method attached to model isPasswordCorrect
+    //4. Verify Password also now after email
     const isPasswordValid=await user.isPasswordCorrect(password)
     if(!isPasswordValid){
         throw new ApiError(403,"Incorrect Password")
     }
-
+    //bhai ye valid user hai qki email bhi mill gyi db mei and password bhi correct hai iska yr toh tokens dedo isse
     //5. Generate access and refresh tokens
     const {accessToken,refreshToken}= await generateAccessAndRefreshToken(user._id)
     
@@ -153,13 +148,7 @@ const loginUser=asyncHandler(async (req,res) => {
     .cookie("refreshToken",refreshToken,options)
     .json(
         new ApiResponse(
-            200,
-            {
-                user:loggedInUser,
-                accessToken,
-                refreshToken
-            },
-            "HURRAY !! User Logged in Project management platform successfully"
+            200,{user:loggedInUser,accessToken,refreshToken},"User Logged in Project management platform successfully BRO"
         )
     )
 })
@@ -169,24 +158,18 @@ const loginUser=asyncHandler(async (req,res) => {
 //In order to logout user, set RT in DB as empty and clear AT&RT from cookie
 const logoutUser=asyncHandler(async (req,res) => {
     const user=await User.findByIdAndUpdate(req.user?._id,{
-            refreshToken:""         //Set RT as empty
+            refreshToken:""         //Set RT as empty so that rt cant produce more at and invalidate current rt
         })
     const options={         //We'll need options to interact with cookies
         httpOnly:true,
-        secure:false
+        secure:true
     }
 
     return res
     .status(200)
     .clearCookie("accessToken",options) 
     .clearCookie("refreshToken",options)
-    .json(
-        new ApiResponse (
-            200,
-            {},
-            "User logged out successfully"
-        )
-    )
+    .json(new ApiResponse (200,{},"User logged out successfully"))
 })
 
 
@@ -196,12 +179,7 @@ const logoutUser=asyncHandler(async (req,res) => {
 const getCurrentUser=asyncHandler(async (req,res)=>{
     return res
     .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            req.user,       //coz req.user is already an object
-            "Current user fetched successfully who has login "
-        )
+    .json(new ApiResponse(200,req.user,/*coz req.user is already an object*/ "Current user fetched successfully who has login ")
     )
 })
 

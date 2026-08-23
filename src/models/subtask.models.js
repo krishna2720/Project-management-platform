@@ -11,7 +11,7 @@ const subTaskSchema=new Schema({
         ref:"Task",
         required:true
     },
-    isCompleted:{           //ye subtask complete hua ya ni 
+    isCompleted:{           //ye subtask complete hua ya ni (isme task ki tarah array ni bnayi todo ,undergoin)
         type:Boolean,
         default:false,
     },
@@ -20,6 +20,6 @@ const subTaskSchema=new Schema({
         ref:"User",
         required:true,
     }
-},{timestamps:true});
+},{timestamps:true});  
  
  export const Subtask=mongoose.model("Subtask",subTaskSchema);

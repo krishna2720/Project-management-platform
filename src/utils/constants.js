@@ -1,4 +1,5 @@
-//Object of User Roles
+//Object of User Roles becuase now duplicacy avoid hogi and sath mei khi update krna hoga toh asani hogi dost 
+//main baat hai validate bhi hojayega if array mei role ni mial jo front end se mila then usko reject krdega 
 export const userRolesEnum = {  
     ADMIN:"admin",
     PROJECT_ADMIN:"project_admin",

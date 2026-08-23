@@ -10,11 +10,11 @@ const projectSchema=new Schema({
      description:{         //project ke baarei mei basic details  
         type:String,
      },
-     createdBy:{      //kiss user ne create kra project user->project
+     createdBy:{      //kiss user ne create kra project , user->project
         type:Schema.Types.ObjectId,
         ref:"User",
         required:true
      }
 },{timestamps:true})
 
-export const Project=mongoose.model("Project",projectSchema);
+export const Project=mongoose.model("Project",projectSchema); 
