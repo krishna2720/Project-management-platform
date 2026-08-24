@@ -14,5 +14,5 @@
     res.status(200).json(
         new ApiResponse(200,{message:"server is running"})
     );
- }); 
+ }); //async_handler 
  export {healthcheck};

@@ -218,10 +218,10 @@ const verifyEmail=asyncHandler(async (req,res)=>{
 
     //3. If token is matched and not expired, mark isEmailVerified flag as true,clear token and save user
     user.emailVerificationToken=undefined
-    user.emailVerificationExpiry=undefined      //st data is not stored in DB unnecessary
+    user.emailVerificationExpiry=undefined      //one time use tha kaam hogya toh kyu rkhna db mei yr 
     
     user.isEmailVerified=true
-    await user.save({validateBeforeSave:false})
+    await user.save({validateBeforeSave:false})   //modification needed
 
     //4. Send response 
     return res
@@ -301,7 +301,7 @@ const refreshAccessToken=asyncHandler(async (req,res)=>{
     //3. Generate new accessToken and refreshToken. Send both to user as cookie and save refreshToken in DB
     const {accessToken,refreshToken}= await generateAccessAndRefreshToken(user._id)
     //Saving new refresh Token in database
-    user.refreshToken=refreshToken
+    user.refreshToken=refreshToken  //REFRESH TOKEN ROTATION 
     await user.save({validateBeforeSave:false})
   
     //Sending both to user as cookie
@@ -334,7 +334,7 @@ const refreshAccessToken=asyncHandler(async (req,res)=>{
 //Take email address of client, verify if it exists in DB and repeat 4th&5th step of registerUser: Attach UT,HT and tokenExpiry then send Email
 //POST /forgot-password    => isme toh mail hejna pdega and uspe link ayega but change password mei aisa ni hoga yr 
 const forgotPasswordRequest=asyncHandler(async (req,res)=>{
-    //1. Take email address of client
+    //1. Take email address of client from frontend
     const {email}=req.body
 
     //2. verify if it exists in DB
@@ -364,35 +364,18 @@ const forgotPasswordRequest=asyncHandler(async (req,res)=>{
     .json(
         new ApiResponse(200,{},"Password Reset email has been sent on your email id successfully")
     )
-})/*
-//USER PASSWORD BHOOL GAYA
-        ↓
-//POST /forgot-password
-        ↓
-//forgotPasswordRequest()
-        ↓
-//Email par reset link bheja
-        ↓
-//User link click karta hai
-        ↓
-//POST /reset-password/:resetToken
-        ↓
-//resetForgotPassword()
-        ↓
-//Token verify
-        ↓
-//New password save*/
+})
 
-//Function to reset Forgot Password
+
 //Take resetToken and newPassword from request, verify resetToken and update password of user
 // POST/reset-password/:resetToken
 const resetForgotPassword=asyncHandler(async (req,res) => {
     //1. Take resetToken and newPassword from request
-    const {resetToken}=req.params       //Reset token must be present as parameter in url(or route)
+    const {resetToken}=req.params       //Reset token must be present as parameter in url(i.e route)
     const {newPassword}=req.body  
     const {confirmPassword}=req.body
 
-    //2. Verify resetToken (resetToken is unHashed token, so hash it then match it with one stored in DB)
+  
     let hashedToken=crypto
     .createHash("sha256")
     .update(resetToken)
@@ -408,7 +391,7 @@ const resetForgotPassword=asyncHandler(async (req,res) => {
     }
 
     if(newPassword!==confirmPassword){
-        throw new ApiError(408,"PAsswords dont match")
+        throw new ApiError(408,"Passwords dont match")
     }
 
     //3. Update Password of user and clear DB
@@ -439,7 +422,7 @@ const changeCurrentPassword=asyncHandler(async (req,res) => {
     const isPasswordValid=await user.isPasswordCorrect(oldPassword)
 
     if(!isPasswordValid){
-        throw new ApiError(408,"Invalid Old Password")
+        throw new ApiError(408,"Old Password does not match with your old password ")
     }
 
     //3. Change to new password and save

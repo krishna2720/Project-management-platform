@@ -18,7 +18,7 @@ const taskSchema=new Schema({
             type:Schema.Types.ObjectId,
             ref:"User",
          },
-         assignedBy:{            //ye task kisne assign kiya hai 
+         assignedBy:{            //ye task kisne assign kiya hai jaruri ni abhi hu hi ho 
             type:Schema.Types.ObjectId,
             ref:"User",
          },
