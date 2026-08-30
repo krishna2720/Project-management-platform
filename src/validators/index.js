@@ -1,6 +1,6 @@
 //Create validators to validate input data pass through the frontend 
 import {body} from "express-validator"  
-
+import { AvailableUserRole } from "../utils/constants.js"
 //Validation method: Returns an array after validating input fields by validation methods and message
 const userRegisterValidator=() => {
     return [
@@ -74,11 +74,37 @@ const userResetForgotPasswordValidator=()=>{      //now user enter the new passw
     ]
 }
 
+const createProjectValidator=()=>{
+    return [
+        body("name")
+          .notEmpty()
+          .withMessage("Name is required"),
+        body("description").optional(),
+    ];
+};
+const addMembertoProjectValidator=()=>{
+     return [
+        body("email")
+          .trim()
+          .notEmpty()
+          .withMessage("email is required")
+          .isEmail()
+          .withMessage("email is invalid"),
+        body("role")
+           .notEmpty()
+           .withMessage("Role is required")
+           .isIn(AvailableUserRole)
+           .withMessage("role is invalid"),
+     ];
+}
+
 export {
     userRegisterValidator,
     userLoginValidator,
     userChangeCurrentPasswordValidator,
     userForgotPasswordValidator,
     userResetForgotPasswordValidator,
+    createProjectValidator,
+    addMembertoProjectValidator
 }
 //requesthit -> validator-> validator middleware(if error and throw eror) ->controller

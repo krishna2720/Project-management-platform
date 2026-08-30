@@ -16,7 +16,7 @@ import jwt from "jsonwebtoken"      //To decode and verify jwt
 import crypto from "crypto"         //To create hashedToken from unHashedToken
 
 import mongoose from "mongoose"
-import { userRolesEnum } from "../utils/constants.js"
+import { AvailableUserRole, userRolesEnum } from "../utils/constants.js"
 import { NetworkResources } from "inspector/promises"
 
 const createProject=asyncHandler(async(req,res)=>{
@@ -84,7 +84,7 @@ const getProjects=asyncHandler(async(req,res)=>{
                                              $lookup:{                       //ye hai bhai yr ab hume btana hai hr given project mei kitte users hai 
                                                 from:"projectmembers",   //kisme jake dhundna hai (lowercase+plural)
                                                 localField:"_id",   // jisme abhi hoo common column 
-                                                foreignField:"project"  //jisme jana ho common column 
+                                                foreignField:"project",  //jisme jana ho common column 
                                                 as:"projectmembers"
                                              },
 
@@ -104,7 +104,7 @@ const getProjects=asyncHandler(async(req,res)=>{
                                  $unwind:"$projects"
                               },
                               {
-                                 $projects:{
+                                 $project:{
                                     project:{
                                        _id:1,
                                        name:1,
@@ -140,33 +140,121 @@ const getProjectById=asyncHandler(async(req,res)=>{
 // email , role  , projectId by frontend 
 const addMembersToProject=asyncHandler(async(req,res)=>{ 
      //  Frontend se data lo
-    const { email, role } = req.body;
+    const { email, role } = req.body;  
     const { projectId } = req.params;
     //  Email se user find karo
     const user = await User.findOne({ email });
     if (!user) {
-        throw new ApiError(404, "User not found");
+        throw new ApiError(404, "User does not exists");
     }
+     // Project find karo
     const project = await Project.findById(projectId);
     if (!project) {
-        throw new ApiError(404, "Project not found");
+        throw new ApiError(
+            404,
+            "Project not found"
+        );
     }
-    
+    //  Check karo user already member toh nahi hai
+    const existingMember = await ProjectMember.findOne({
+        user: user._id,
+        project: projectId
+    });
+    if (existingMember) {
+        throw new ApiError(409,"User is already a member of this project");
+    }
+    //  New ProjectMember document create karo
+    const member = await ProjectMember.create({
+        user: user._id,
+        project: projectId,
+        role: role
+    });
+  /*  production level code
+  const member = await ProjectMember.findOneAndUpdate(
+    {user: user._id,
+     project: projectId
+    },
+    { role: role},
+    { new: true,     // updated document return karega
+      upsert: true    // member nahi mila toh new member create karega
+    }
+);  */
+    //  Response
+    return res
+        .status(201)
+        .json(
+            new ApiResponse(201,member,"Project Member added successfully")
+        );
 });
 
 const getProjectMembers=asyncHandler(async(req,res)=>{
-
-});
+     const { projectId } = req.params;
+     const project = await Project.findById(projectId);
+     if (!project) {
+        throw new ApiError(404,"Project not found so cant find the projectMembers");
+     }    
+     const members = await ProjectMember.find({
+        project: projectId
+     });
+     if (!members) {
+        throw new ApiError(404, "Project members not found");
+     }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200,members,"Project members fetched successfully")
+        );
+});   //isme user,project ko bhi le skte the mind mei with pipeline but wo baadmei dekhege 
 
 const updateMemberRole=asyncHandler(async(req,res)=>{
-
+    // Frontend se new role
+    const { newrole } = req.body;
+    if (!AvailableUserRole.includes(newrole)) {
+          throw new ApiError(400, "Invalid role");
+    }
+    // URL se projectId aur userId
+    const { projectId, userId } = req.params;
+    // Existing member find karke role update karo
+    const member = await ProjectMember.findOneAndUpdate(
+        {   project: projectId,
+            user: userId
+        },
+        {   role:newrole
+        },
+        {
+            new: true
+        }
+    );
+    if (!member) {
+        throw new ApiError(404,"Project member not found");
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200,member,"Member role updated successfully")
+              );
 });
 
 const deleteMember=asyncHandler(async(req,res)=>{
+      const { projectId, userId } = req.params;
+    // ProjectMember mein member dhundo aur delete karo
+    const member = await ProjectMember.findOneAndDelete({
+        project: projectId,
+        user: userId
+    });
+    if (!member) {
+        throw new ApiError(
+            404,
+            "Project member not found"
+        );
+    }
+    return res
+        .status(200)
+        .json(
+             new ApiResponse(200,{},"Member deleted successfully")
+             );
+});       
 
-});
-
-
+ 
 export {
    addMembersToProject,
    createProject,

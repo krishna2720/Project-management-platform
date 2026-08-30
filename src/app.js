@@ -24,14 +24,18 @@ app.use(cors({
 
 import healthcheckrouter from "./routes/heathcheck.route.js";
 import authRouter from "./routes/auth.routes.js";
+ 
+import projectRouter from "./routes/project.routes.js";
 
 app.use("/api/v1/auth",authRouter);   //ye path aur add krdena url mei 
 app.use("/api/v1/healthcheck",healthcheckrouter);
  /*Client request bhejta hai → Express app request receive karta hai → app.use() ke through request correct router ko forward hoti hai → Router URL aur HTTP method match karta hai → Controller execute hota hai → Agar zarurat ho to database se interact karta hai → Controller response banata hai → Express browser ko JSON response bhej deta hai.*/
+app.use("/api/v1/projects",projectRouter)
 
 app.get("/",(req,res)=>{
     res.send("Hello World");
 });
+
 app.get("/instagram",(req,res)=>{
     res.send("Hello instagram");
 });

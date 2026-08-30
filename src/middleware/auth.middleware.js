@@ -4,6 +4,7 @@
 
 //ye bich se token utha leg yrr 
 import {User} from "../models/users.models.js"      //TO verify accessToken and extract payload from accessToken
+import {ProjectMember} from  "../models/projectmember.models.js"
 import { ApiError } from "../utils/api-error.js"
 import { asyncHandler } from "../utils/async-handler.js"
 import jwt from "jsonwebtoken"         //To decode access token
@@ -42,3 +43,29 @@ export const verifyJWT=asyncHandler(async (req,res,next) => {
         throw new ApiError(401,"Invalid access token or expired token or wrong secret or malformed token ")
     }
 })
+
+
+export const validateProjectPermission=(roles=[])=>{
+    return asyncHandler(async (req,res,next)=>{
+        const {projectId}=req.params;
+        if (!projectId) {
+            throw new ApiError(400,"projectId is missing");
+        }
+       // Current user ka project membership find karo
+        const member = await ProjectMember.findOne({
+            project: projectId,
+            user: req.user._id
+        });
+        // User project ka member hi nahi hai
+        if (!member) {
+            throw new ApiError( 403,"You are not a member of this project");
+        }
+        //role mei member.role ni hai toh throw error 
+        if (!roles.includes(member.role)) {
+            throw new ApiError(403,"You don't have permission to perform this action");
+        }
+        // Permission mil gayi → next middleware/controller
+        next();
+    })
+}
+

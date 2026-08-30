@@ -1,5 +1,5 @@
 import mongoose,{Schema} from "mongoose";
-import { userRolesEnum,AvailableUserRole } from "../utils/constants";
+import { userRolesEnum,AvailableUserRole } from "../utils/constants.js";
 const projectMemberSchema=new Schema ({
     user:{        //kaunsa user iss project ka member hai 
         type:Schema.Types.ObjectId,
