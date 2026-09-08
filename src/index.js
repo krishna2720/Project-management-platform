@@ -1,12 +1,16 @@
 import dotenv from "dotenv"
-dotenv.config();
-import app from "./app.js";
+dotenv.config();   //env file variable access
+
+import app from "./app.js";    //app ko listen krna isme bss 
+
 import connectDB from "./db/index.js";
 
 
 
-const port=process.env.PORT || 3000;
+const port=process.env.PORT || 3000;  //cant fetch from .env then 3000 
 
+
+//jab connect ho database se jab hi port listen kre hum yrr 
 connectDB()
       .then(()=>{
         app.listen(port,()=>{

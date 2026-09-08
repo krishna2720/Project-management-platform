@@ -43,7 +43,7 @@ const userSchema=new Schema({
         type:Boolean,
         default:false,
       },
-      refreshtoken:{
+      refreshToken:{
         type:String
       },
       forgotPasswordToken:{
@@ -87,7 +87,7 @@ userSchema.methods.generateAccessToken=function(){
 )
 };
 //payload, secret,options  => header+payload+signature i.e. xxxx.yyyy.zzzz
-
+  
 
 //generating the refresh token
 userSchema.methods.generateRefreshToken=function(){
@@ -104,13 +104,13 @@ userSchema.methods.generateRefreshToken=function(){
 
 //genreating the unhashed token usng bcrypt
 userSchema.methods.generateTemporaryToken=function(){
-  const unHashedtoken=crypto.randomBytes(20).toString("hex")
+  const unHashedToken=crypto.randomBytes(20).toString("hex")
   const hashedToken=crypto
         .createHash("sha256")  //which algo i want to use 
-        .update(unHashedtoken)    //unhashed to hashed
+        .update(unHashedToken)    //unhashed to hashed
         .digest("hex")           
-  const TokenExpiry=Date.now()+(20*60*1000)   //expiry date 
-  return {unHashedtoken,hashedToken,TokenExpiry}
+  const tokenExpiry=Date.now()+(20*60*1000)   //expiry date 
+  return {unHashedToken,hashedToken,tokenExpiry}
 };//UNHASHEDTOKEN->USER    ||  HASHEDTOKEN->DB->FORGETPASSWORDTOKEN PE || TOKENEXPIRY->DB->FORGETPASSWORDEXPIRY MEI 
 
 export const User=mongoose.model("User",userSchema)    

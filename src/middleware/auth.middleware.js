@@ -28,7 +28,7 @@ export const verifyJWT=asyncHandler(async (req,res,next) => {
         //ab database isleye hit kia kyuki token stale ho skta latest db statee chahiye isleye 
 
         const user=await User.findById(decodedToken?._id).select(
-            "-password -emailVerificationExpiry -emailVerificationToken -forgotPasswordExpiry -forgotPasswordToken -refreshToken"
+            "-password -forgotPasswordExpiry -forgotPasswordToken -refreshToken"
         )   
     //Except these fields, select all other fields of user from DB       //._id milgyi user ki dost 
 

@@ -33,7 +33,7 @@ const generateAccessAndRefreshToken=async(userId) => {  //Once user gets entered
 const registerUser=asyncHandler(async (req,res)=>{
 
     //1. Take some data (Data is present in body of request)
-    const {email,username,password,role}=req.body
+    const {email,username,password}=req.body
 
     //2. Validate the data
     //We have created validator, middleware and implemented them in route to validate data
@@ -73,7 +73,7 @@ const registerUser=asyncHandler(async (req,res)=>{
             email:newUser?.email,  //If we have new user, we'll use its To email
             subject:"Please verify your email",
             mailgenContent:emailVerificationMailgenContent(newUser.username, 
-            `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`
+            `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email/${unHashedToken}`
             )   //Dynamically generating verification url in email
         //We will create controller and route for verify-email and process this unhashed token
         }
@@ -83,7 +83,7 @@ const registerUser=asyncHandler(async (req,res)=>{
     //6. Send response back to user (Success msg)
     //Data of response
     const createdUser=await User.findById(newUser._id).select(
-        "-password -emailVerificationExpiry -emailVerificationToken -forgotPasswordExpiry -forgotPasswordToken -refreshToken"
+        "-password -emailVerificationExpiry -emailVerificationToken -forgotPasswordExpiry -forgotPasswordToken -refreshtoken"
     )      //These are fields that wont be selected as you want them in your response
 
     if(!createdUser)
@@ -153,37 +153,6 @@ const loginUser=asyncHandler(async (req,res) => {
     )
 })
 
-
-//Function to Logout user 
-//In order to logout user, set RT in DB as empty and clear AT&RT from cookie
-const logoutUser=asyncHandler(async (req,res) => {
-    const user=await User.findByIdAndUpdate(req.user?._id,{
-            refreshToken:""         //Set RT as empty so that rt cant produce more at and invalidate current rt
-        })
-    const options={         //We'll need options to interact with cookies
-        httpOnly:true,
-        secure:true
-    }
-
-    return res
-    .status(200)
-    .clearCookie("accessToken",options) 
-    .clearCookie("refreshToken",options)
-    .json(new ApiResponse (200,{},"User logged out successfully"))
-})
-
-
-//Function to get current user (Request already has user appended with it, return it)
-//abhi kon kon login hai 
-// GET /current-user
-const getCurrentUser=asyncHandler(async (req,res)=>{
-    return res
-    .status(200)
-    .json(new ApiResponse(200,req.user,/*coz req.user is already an object*/ "Current user fetched successfully who has login ")
-    )
-})
-
-
 //Function to verify email
 // GET/verify-email/:verificationToken
 const verifyEmail=asyncHandler(async (req,res)=>{
@@ -229,47 +198,6 @@ const verifyEmail=asyncHandler(async (req,res)=>{
     .json(
         new ApiResponse(200,{isEmailVerified:true},"User verification has been successful")
     )
-})
-
-
-//Function to resend Email verification
-//Email verification can be present only if email is not verified and after emailVerficationExpiry
-//Apply these 2 checks then repeat same 4&5 step of registerUser: Attach UT,HT and tokenExpiry then send Email
-//POST /resend-email-verification
-const resendEmailVerification=asyncHandler(async (req,res)=>{
-    const user=req.user
-    //Verification email should not be resent if user is already verified
-    if(user.isEmailVerified){
-        throw new ApiError(409,"Email already verified")
-    }
-
-    //Verification email should be resent only after emailVerificationExpiry
-    if(user.emailVerificationExpiry &&
-    user.emailVerificationExpiry>Date.now()){
-        throw new ApiError(408,"Verification email already sent. Please wait sometime before resending")
-    }
-
-    //Repeat 4th and 5th step of registerUser: Attact UT,HT and tokenExpiry and sendEmail
-    //4. Saving user in DB with UT,HT and tokenExpiry
-    const {unHashedToken,hashedToken,tokenExpiry}=user.generateTemporaryToken()
-
-    user.emailVerificationToken=hashedToken
-    user.emailVerificationExpiry=tokenExpiry
-    await user.save({validateBeforeSave:false})
-
-    //5. Verify user by Email
-    await sendEmail(
-        {
-            email:user?.email,
-            subject:"Please verify your email",
-            mailgenContent:emailVerificationMailgenContent(user.username, 
-            `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`)
-        }
-    )
-
-    return res
-    .status(200)
-    .json(new ApiResponse(200,{},"Verification email has been resent successfully"))
 })
 
 
@@ -408,6 +336,36 @@ const resetForgotPassword=asyncHandler(async (req,res) => {
     )
 })
  
+//Function to Logout user 
+//In order to logout user, set RT in DB as empty and clear AT&RT from cookie
+const logoutUser=asyncHandler(async (req,res) => {
+    const user=await User.findByIdAndUpdate(req.user?._id,{
+            refreshToken:""         //Set RT as empty so that rt cant produce more at and invalidate current rt
+        })
+    const options={         //We'll need options to interact with cookies
+        httpOnly:true,
+        secure:true
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken",options) 
+    .clearCookie("refreshToken",options)
+    .json(new ApiResponse (200,{},"User logged out successfully"))
+})
+
+
+//Function to get current user (Request already has user appended with it, return it)
+//abhi kon kon login hai 
+// GET /current-user
+const getCurrentUser=asyncHandler(async (req,res)=>{
+    return res
+    .status(200)
+    .json(new ApiResponse(200,req.user,/*coz req.user is already an object*/ "Current user fetched successfully who has login ")
+    )
+})
+
+
 
 //Function to change Password (For user who is already loggedIn)
 //req.user works only when user is loggedIn otherwise you need to run a query in DB to find matching user
@@ -435,6 +393,54 @@ const changeCurrentPassword=asyncHandler(async (req,res) => {
         new ApiResponse(200,{},"Password changed successfully by the user ")
     )
 })
+
+
+//Function to resend Email verification
+//Email verification can be present only if email is not verified and after emailVerficationExpiry
+//Apply these 2 checks then repeat same 4&5 step of registerUser: Attach UT,HT and tokenExpiry then send Email
+//POST /resend-email-verification
+const resendEmailVerification=asyncHandler(async (req,res)=>{
+    const user=req.user
+    console.log("USER:", user.email);
+    console.log("isEmailVerified:", user.isEmailVerified);
+    console.log("Expiry:", user.emailVerificationExpiry);
+    console.log("Now:", Date.now());
+
+    //Verification email should not be resent if user is already verified
+    if(user.isEmailVerified){
+        throw new ApiError(409,"Email already verified")
+    }
+
+    //Verification email should be resent only after emailVerificationExpiry
+    if(user.emailVerificationExpiry &&
+    user.emailVerificationExpiry>Date.now()){
+        throw new ApiError(408,"Verification email already sent. Please wait sometime before resending")
+    }
+
+    //Repeat 4th and 5th step of registerUser: Attact UT,HT and tokenExpiry and sendEmail
+    //4. Saving user in DB with UT,HT and tokenExpiry
+    const {unHashedToken,hashedToken,tokenExpiry}=user.generateTemporaryToken()
+
+    user.emailVerificationToken=hashedToken
+    user.emailVerificationExpiry=tokenExpiry
+    await user.save({validateBeforeSave:false})
+
+    //5. Verify user by Email
+    await sendEmail(
+        {
+            email:user?.email,
+            subject:"Please verify your email",
+            mailgenContent:emailVerificationMailgenContent(user.username, 
+            `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email/${unHashedToken}`)
+        }
+    )
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200,{},"Verification email has been resent successfully"))
+})
+
+
 
 export {
     registerUser,

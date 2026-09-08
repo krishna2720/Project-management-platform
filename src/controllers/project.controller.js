@@ -19,6 +19,58 @@ import mongoose from "mongoose"
 import { AvailableUserRole, userRolesEnum } from "../utils/constants.js"
 import { NetworkResources } from "inspector/promises"
 
+
+const getProjects=asyncHandler(async(req,res)=>{
+   const projects = await ProjectMember.aggregate([
+                     {$match: {user: new mongoose.Types.ObjectId(req.user._id)} },
+                     {$lookup: { from: "projects",    //kisme jake dhundna COLLECTION (lowercase+plural)
+                                 localField: "project",   // jisme abhi hoo common column name
+                                 foreignField: "_id",     //jisme jana hai common column  name
+                                 as: "projects",     //simple alias of resulted query
+                                 pipeline:[
+                                      {
+                                      $lookup:{                       //ye hai bhai yr ab hume btana hai hr given project mei kitte users hai 
+                                      from:"projectmembers",   //kisme jake dhundna hai (lowercase+plural)
+                                      localField:"_id",   // jisme abhi hoo common column 
+                                      foreignField:"project",  //jisme jana ho common column 
+                                      as:"projectmembers"
+                                       },
+                                      },
+                                      {
+                                      $addFields:{
+                                         members:{          //ek members ki field add hojagi jisme hrr project me ikitte members hai wo show hojaega bhai 
+                                             $size : "$projectmembers", 
+                                          },
+                                       },
+                                      },
+                                 ],                                                                             
+                                }
+                     },
+                     {
+                       $unwind:"$projects"
+                     },
+                     {
+                       $project:{
+                              project:{
+                                  _id: "$projects._id",
+                                  name: "$projects.name",
+                                  description: "$projects.description",
+                                  members: "$projects.members",
+                                  createdAt: "$projects.createdAt",
+                                  createdBy: "$projects.createdBy"
+                               },
+                               role:1,
+                                _id:0
+                        }
+                     }
+    ]);
+    return res
+        .status(200)
+        .json(new ApiResponse(200,projects,"Projects fetched successfully"));
+}
+);
+
+
 const createProject=asyncHandler(async(req,res)=>{
    const {name,description}=req.body;
    const project=await Project.create({
@@ -37,6 +89,21 @@ const createProject=asyncHandler(async(req,res)=>{
    .json(new ApiResponse(201,project,"Project created successfully"));
 
 });
+
+
+const getProjectById=asyncHandler(async(req,res)=>{
+    const { projectId } = req.params;
+    const project = await Project.findById(projectId);
+    if (!project) {
+        throw new ApiError(404, "Project not found");
+    }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200,project,"Project fetched successfully")
+         );      
+});
+
 
 const updateProject=asyncHandler(async(req,res)=>{
    const {name,description}=req.body;
@@ -70,71 +137,6 @@ const deleteProject=asyncHandler(async(req,res)=>{
         .json(
          new ApiResponse(200,{},"Project deleted succesfully")
         );
-});
-
-const getProjects=asyncHandler(async(req,res)=>{
-   const projects = await ProjectMember.aggregate([
-                             {$match: {user: new mongoose.Types.ObjectId(req.user._id)} },
-                             {$lookup: { from: "projects",    //kisme jake dhundna (lowercase+plural)
-                                         localField: "project",   // jisme abhi hoo common column name
-                                         foreignField: "_id",     //jisme jana hai common column  name
-                                         as: "projects",     //simple alias of resulted query
-                                         pipeline:[
-                                          {
-                                             $lookup:{                       //ye hai bhai yr ab hume btana hai hr given project mei kitte users hai 
-                                                from:"projectmembers",   //kisme jake dhundna hai (lowercase+plural)
-                                                localField:"_id",   // jisme abhi hoo common column 
-                                                foreignField:"project",  //jisme jana ho common column 
-                                                as:"projectmembers"
-                                             },
-
-                                          },
-                                          {
-                                             $addFields:{
-                                                members:{          //ek members ki field add hojagi jisme hrr project me ikitte members hai wo show hojaega bhai 
-                                                   $size : "$projectmembers", 
-                                                },
-                                             },
-                                          },
-                                         ],
-                                                                                
-                                       }
-                              },
-                              {
-                                 $unwind:"$projects"
-                              },
-                              {
-                                 $project:{
-                                    project:{
-                                       _id:1,
-                                       name:1,
-                                       description:1,
-                                       members:1,
-                                       createdAt:1,
-                                       createdBy:1
-                                    },
-                                    role:1,
-                                    _id:0
-                                 }
-                              }
-    ]);
-    return res
-        .status(200)
-        .json(new ApiResponse(200,projects,"Projects fetched successfully"));
-}
-);
-
-const getProjectById=asyncHandler(async(req,res)=>{
-    const { projectId } = req.params;
-    const project = await Project.findById(projectId);
-    if (!project) {
-        throw new ApiError(404, "Project not found");
-    }
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200,project,"Project fetched successfully")
-         );      
 });
 
 // email , role  , projectId by frontend 
@@ -187,25 +189,6 @@ const addMembersToProject=asyncHandler(async(req,res)=>{
         );
 });
 
-const getProjectMembers=asyncHandler(async(req,res)=>{
-     const { projectId } = req.params;
-     const project = await Project.findById(projectId);
-     if (!project) {
-        throw new ApiError(404,"Project not found so cant find the projectMembers");
-     }    
-     const members = await ProjectMember.find({
-        project: projectId
-     });
-     if (!members) {
-        throw new ApiError(404, "Project members not found");
-     }
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200,members,"Project members fetched successfully")
-        );
-});   //isme user,project ko bhi le skte the mind mei with pipeline but wo baadmei dekhege 
-
 const updateMemberRole=asyncHandler(async(req,res)=>{
     // Frontend se new role
     const { newrole } = req.body;
@@ -233,6 +216,25 @@ const updateMemberRole=asyncHandler(async(req,res)=>{
         .json(new ApiResponse(200,member,"Member role updated successfully")
               );
 });
+
+const getProjectMembers=asyncHandler(async(req,res)=>{
+     const { projectId } = req.params;
+     const project = await Project.findById(projectId);
+     if (!project) {
+        throw new ApiError(404,"Project not found so cant find the projectMembers");
+     }    
+     const members = await ProjectMember.find({
+        project: projectId
+     });
+     if (!members) {
+        throw new ApiError(404, "Project members not found");
+     }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200,members,"Project members fetched successfully")
+        );
+});   //isme user,project ko bhi le skte the mind mei with pipeline but wo baadmei dekhege 
 
 const deleteMember=asyncHandler(async(req,res)=>{
       const { projectId, userId } = req.params;

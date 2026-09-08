@@ -1,4 +1,4 @@
-//isme saara express ka code daal dege bhai hum yrr bakchodi ni hogi phr 
+//isme saara express ka code daal dege so no mixing 
 import express from "express";
 const app=express();
 import cors from "cors";
@@ -27,10 +27,19 @@ import authRouter from "./routes/auth.routes.js";
  
 import projectRouter from "./routes/project.routes.js";
 
+import taskRouter from "./routes/task.routes.js";
+
+import noteRouter from "./routes/notes.routes.js";
+
 app.use("/api/v1/auth",authRouter);   //ye path aur add krdena url mei 
+
 app.use("/api/v1/healthcheck",healthcheckrouter);
  /*Client request bhejta hai → Express app request receive karta hai → app.use() ke through request correct router ko forward hoti hai → Router URL aur HTTP method match karta hai → Controller execute hota hai → Agar zarurat ho to database se interact karta hai → Controller response banata hai → Express browser ko JSON response bhej deta hai.*/
-app.use("/api/v1/projects",projectRouter)
+app.use("/api/v1/projects",projectRouter);  //projectrouter import kiya hai humne yrr 
+
+app.use("/api/v1/tasks", taskRouter);
+
+app.use("/api/v1/notes",noteRouter);
 
 app.get("/",(req,res)=>{
     res.send("Hello World");
@@ -38,6 +47,9 @@ app.get("/",(req,res)=>{
 
 app.get("/instagram",(req,res)=>{
     res.send("Hello instagram");
+});
+app.get("/krishna",(req,res)=>{
+    res.send("ye frontend hai krishna bhai yrr ");
 });
 
 
