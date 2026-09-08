@@ -943,14 +943,6 @@ It helps others discover the project and motivates further improvements.
 
 ---
 
-# 📜 License
-
-This project is licensed under the **MIT License**.
-
-Feel free to use, modify, and distribute it in accordance with the license terms.
-
----
-
 <div align="center">
 
 ### 🚀 Built with ❤️ using Node.js, Express.js & MongoDB
