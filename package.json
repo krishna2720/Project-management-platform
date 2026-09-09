@@ -19,6 +19,7 @@
     "prettier": "^3.9.6"
   },
   "dependencies": {
+    "@google/genai": "^2.21.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cookies-parser": "^1.2.0",

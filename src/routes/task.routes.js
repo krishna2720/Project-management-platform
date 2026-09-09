@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import {createTask,getProjectTasks,getTaskDetails,updateTask,deleteTask,createSubtasks,updateSubTask,deleteSubTask} from "../controllers/task.controller.js"
+import {createTask,getProjectTasks,getTaskDetails,updateTask,deleteTask,createSubtasks,updateSubTask,deleteSubTask,generateAISubtasksController} from "../controllers/task.controller.js"
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { validateProjectPermission } from "../middleware/auth.middleware.js";
 import { userRolesEnum } from "../utils/constants.js";
@@ -23,5 +23,7 @@ router.post("/:projectId/:taskId/subtasks",verifyJWT,validateProjectPermission([
 router.put("/:projectId/:taskId/:subTaskId",verifyJWT,validateProjectPermission([userRolesEnum.ADMIN, userRolesEnum.MEMBER]),updateSubTask);
 
 router.delete("/:projectId/:taskId/:subTaskId",verifyJWT,validateProjectPermission([userRolesEnum.ADMIN]),deleteSubTask);
+
+router.post("/:projectId/:taskId/ai-subtasks",verifyJWT,validateProjectPermission([userRolesEnum.ADMIN]),generateAISubtasksController);
 
 export default router;

@@ -6,6 +6,7 @@ import { ProjectMember } from "../models/projectmember.models.js"
 import { Task } from "../models/task.models.js"
 import { Subtask } from "../models/subtask.models.js"
 
+import { generateAISubtasks } from "../services/ai.service.js";
 
 import {ApiResponse} from "../utils/api-response.js"   
 import {ApiError} from "../utils/api-error.js"   
@@ -269,6 +270,40 @@ const deleteSubTask = asyncHandler(async (req, res) => {
         );
 });
 
+const generateAISubtasksController = asyncHandler(async (req, res) => {
+  
+  const { projectId, taskId } = req.params;
+
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId
+  });
+
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
+
+  const result = await generateAISubtasks(task.title,task.description);
+
+  //  AI ke har subtask ko MongoDB me save karo
+  const subtasks = [];
+  for (const subtask of result.subtasks) {
+     const newSubtask = await Subtask.create({
+                        title: subtask.title,
+                        task: taskId,
+                        createdBy: req.user._id
+   });
+
+    subtasks.push(newSubtask);
+  }
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      subtasks,
+      "AI subtasks generated successfully"
+    )
+  );
+});
 
 export {
     createTask,
@@ -278,7 +313,8 @@ export {
     deleteTask,
     createSubtasks,
     updateSubTask,
-    deleteSubTask
+    deleteSubTask,
+    generateAISubtasksController
 }
 
 
