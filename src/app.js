@@ -14,14 +14,25 @@ app.use(cookieParser())
 
 
 //cors ka configurtion
-app.use(cors({
-    origin:process.env.CORS_ORIGIN?.split(",") || ["http://localhost:5173"],
-    credentials:true,
-    methods:["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-     allowedHeaders:["Content-type","Authorization"],
-    }),
-);
+const allowedOrigins = [
+  "http://localhost:5173",
+  ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map((url) => url.trim()) : []),
+];
 
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 import healthcheckrouter from "./routes/heathcheck.route.js";
 
 import authRouter from "./routes/auth.routes.js";
