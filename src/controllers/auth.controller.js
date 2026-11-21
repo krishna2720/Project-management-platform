@@ -33,7 +33,7 @@ const generateAccessAndRefreshToken=async(userId) => {  //Once user gets entered
 const registerUser=asyncHandler(async (req,res)=>{
 
     //1. Take some data (Data is present in body of request)
-    const {email,username,password}=req.body
+    const {email,username,password,fullname}=req.body
 
     //2. Validate the data
     //We have created validator, middleware and implemented them in route to validate data
@@ -52,6 +52,7 @@ const registerUser=asyncHandler(async (req,res)=>{
         email,
         password,               //Since mongoDB is noSQL DB, it can have flexible schema. Mongoose matches keys by name ot by position
         username,
+        fullname,
         isEmailVerified:false
     })
 
