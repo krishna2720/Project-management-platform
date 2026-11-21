@@ -135,7 +135,8 @@ const loginUser=asyncHandler(async (req,res) => {
     //Cookies require options. Options are rules attached to cookie to make them secure
     const options={
         httpOnly:true,      //So that cookies are accessible by browser and server only (Since cookies are created by server and eaten by server)
-        secure:true         //Cookies are sent over only https not http to prevent MIM attack
+        secure:true,        //Cookies are sent over only https not http to prevent MIM attack
+        sameSite:"none"     //Required when the frontend and backend use different HTTPS domains
     }
     
     //7. Send response to user (with success msg)
@@ -236,7 +237,8 @@ const refreshAccessToken=asyncHandler(async (req,res)=>{
     //Sending both to user as cookie
     const options={
         httpOnly:true,
-        secure:true
+        secure:true,
+        sameSite:"none"
     }
 
     return res
@@ -345,7 +347,8 @@ const logoutUser=asyncHandler(async (req,res) => {
         })
     const options={         //We'll need options to interact with cookies
         httpOnly:true,
-        secure:true
+        secure:true,
+        sameSite:"none"
     }
 
     return res
