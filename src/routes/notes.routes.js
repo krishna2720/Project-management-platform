@@ -16,5 +16,4 @@ router.put("/:projectId/:noteId",verifyJWT,validateProjectPermission([userRolesE
 
 router.delete("/:projectId/:noteId",verifyJWT,validateProjectPermission([userRolesEnum.ADMIN]),deleteNote);
 
-
 export default router;

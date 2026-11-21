@@ -102,7 +102,7 @@ const registerUser=asyncHandler(async (req,res)=>{
 //Function to login user (7-Step process)
 //email password se login krwana hai mere dostttt 
 const loginUser=asyncHandler(async (req,res) => {
-    //1. Take some data from frontend: From req.body
+        //1. Take some data from frontend: From req.body
     const {email,password}=req.body
 
     if(!email){

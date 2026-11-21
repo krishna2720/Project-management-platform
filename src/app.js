@@ -23,6 +23,7 @@ app.use(cors({
 );
 
 import healthcheckrouter from "./routes/heathcheck.route.js";
+
 import authRouter from "./routes/auth.routes.js";
  
 import projectRouter from "./routes/project.routes.js";
@@ -44,15 +45,31 @@ app.use("/api/v1/notes",noteRouter);
 app.get("/",(req,res)=>{
     res.send("Hello World");
 });
+app.get('/api/v1/jokes',(req,res)=>{
+    const jokes=[
+        {
+            id:1,
+            title:"a joke",
+            content:"this is a joke"
+        },
+        {
+            id:2,
+            title:"another joke",
+            content:"this is another joke"
+        },{
+            id:3,
+            title:"a third joke",
+            content:"this is a third joke"
+        }
 
+    ];
+    res.send(jokes);
+})
 app.get("/instagram",(req,res)=>{
     res.send("Hello instagram");
 });
 app.get("/krishna",(req,res)=>{
     res.send("ye frontend hai krishna bhai yrr ");
 });
-
-
-
 
 export default app;

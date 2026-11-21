@@ -23,7 +23,6 @@ router.get("/verify-email/:verificationToken", verifyEmail);
 
 router.post("/refresh-token", refreshAccessToken);
 
-
 router.post("/forgot-password", userForgotPasswordValidator(), validate, forgotPasswordRequest);
 
 router.post("/reset-password/:resetToken",userResetForgotPasswordValidator(),validate,resetForgotPassword);
