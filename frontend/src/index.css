@@ -333,19 +333,26 @@ body { background: #f4f3ef; color: #292824; }
   .auth-mobile-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 44px; color: #333b4e; font-size: 17px; font-weight: 700; }
 }
 @media (max-width: 520px) {
-  .main-content { padding-right: 14px; padding-left: 14px; }
+  body { overflow-x: hidden; }
+  .main-content { width: 100%; padding: 22px 14px 38px; }
   .topbar { padding-right: 14px; padding-left: 14px; }
   .breadcrumb { gap: 7px; font-size: 10px; }
   .topbar-action { gap: 4px; font-size: 10px; }
-  .welcome-row { gap: 10px; }
+  .welcome-row { flex-wrap: wrap; gap: 12px; }
+  .welcome-row > div { width: 100%; }
+  .welcome-row .button { width: 100%; min-height: 42px; }
   .welcome-row h1 { max-width: 270px; font-size: 22px; }
   .welcome-row p { max-width: 235px; font-size: 10px; line-height: 1.5; }
   .welcome-row .button { gap: 4px; }
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .stat-card { min-height: 90px; }
+  .stat-card { min-height: 96px; }
+  .stat-icon { width: 29px; height: 29px; }
+  .stat-copy strong { font-size: 19px; }
+  .stat-copy small { line-height: 1.35; }
   .stat-copy span { font-size: 10px; }
   .stat-copy small { font-size: 9px; }
   .project-grid { grid-template-columns: 1fr; }
+  .project-card { padding: 14px; }
   .project-tools { width: 100%; }
   .section-heading { flex-wrap: wrap; }
   .section-heading h2 { font-size: 15px; }
@@ -356,10 +363,23 @@ body { background: #f4f3ef; color: #292824; }
   .project-tabs { justify-content: space-between; gap: 8px; }
   .project-tabs button { gap: 5px; font-size: 10px; }
   .project-task-copy p { max-width: 190px; }
-  .project-task-actions select { max-width: 80px; font-size: 9px; }
+  .project-task-row { min-height: 82px; }
+  .project-task-actions select { max-width: 76px; min-height: 34px; font-size: 9px; }
+  .project-task-actions .icon-button { width: 34px; height: 34px; }
   .member-row { gap: 7px; padding-right: 8px; padding-left: 8px; }
-  .member-row select { max-width: 93px; }
+  .member-row select { max-width: 93px; min-height: 34px; }
   .member-row > .role-pill { font-size: 8px; }
   .member-copy small { max-width: 140px; }
   .toast { right: 12px; left: 12px; justify-content: center; }
+  .modal-backdrop { align-items: flex-end; padding: 12px; }
+  .modal { width: 100%; max-height: calc(100vh - 24px); overflow-y: auto; border-radius: 13px; }
+  .modal-form input, .modal-form textarea { min-height: 44px; font-size: 16px; }
+  .modal-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .auth-form-panel { padding: 32px 18px 20px; }
+  .auth-form-wrap { width: 100%; max-width: 390px; }
+  .auth-mobile-brand { margin-bottom: 28px; }
+  .auth-form input { min-height: 46px; font-size: 16px; }
+  .auth-form .button { min-height: 46px; }
+  .auth-description { font-size: 12px; }
+  .auth-switch { font-size: 11px; }
 }

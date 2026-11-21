@@ -2,7 +2,9 @@
 
 # Project Management Platform
 
-Collaborative project and task management with a REST API and a React web application.
+A full-stack project and task management platform built with React, Node.js, Express, MongoDB, JWT authentication, and role-based access control.
+
+**Live application:** [https://project-management-platform-jade-ten.vercel.app](https://project-management-platform-jade-ten.vercel.app)
 
 [![Node.js](https://img.shields.io/badge/Node.js-20.19%2B-43853D?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)](https://expressjs.com/)
@@ -17,6 +19,11 @@ Collaborative project and task management with a REST API and a React web applic
 Project Management Platform is a full-stack application for organizing team work in project-based workspaces. Users can create projects, manage membership and roles, track tasks and subtasks, and keep project notes in one place.
 
 The backend exposes a versioned REST API built with Node.js, Express, MongoDB, and Mongoose. The React frontend uses the same API for authentication, project dashboards, and project management.
+
+**Live deployment**
+
+- Frontend: [https://project-management-platform-jade-ten.vercel.app](https://project-management-platform-jade-ten.vercel.app)
+- Backend health endpoint: [https://project-management-backend-7evi.onrender.com/api/v1/healthcheck/](https://project-management-backend-7evi.onrender.com/api/v1/healthcheck/)
 
 ## Features
 
@@ -164,6 +171,17 @@ npm run dev
 ```
 
 Vite runs on `http://localhost:5173` and proxies `/api` requests to the backend. The API client uses `/api/v1` as its base path. To point the deployed frontend at a separately hosted API, set `VITE_API_URL` to the full API base URL, such as `https://api.example.com/api/v1`.
+
+## Deployment
+
+The frontend is deployed on Vercel with the `frontend` directory as the project root. The backend is deployed as a Node.js web service on Render.
+
+| Service | Environment variable | Example value |
+|---|---|---|
+| Frontend | `VITE_API_URL` | `https://your-render-service.onrender.com/api/v1` |
+| Backend | `CORS_ORIGIN` | `https://project-management-platform-jade-ten.vercel.app` |
+
+For Render, use `npm ci` as the build command and `npm start` as the start command. Add MongoDB, JWT, SMTP, and optional Gemini credentials through the hosting provider's environment-variable settings. Do not commit secrets or `.env` files.
 
 ## API
 
